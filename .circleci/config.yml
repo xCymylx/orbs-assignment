@@ -1,0 +1,47 @@
+version: 2.1
+orbs:
+  slack: circleci/slack@4.12.5
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:21.0
+
+jobs:
+  nodebuild:
+    executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - run:
+          name: Run Unit Tests
+          command: npm test
+      - run:
+          name: Generate Code Coverage Report
+          command: npm run test:coverage
+      - store_artifacts:
+          path: coverage
+      - slack/notify:
+          event: always
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "This is Kaden Campbell submitting the slack assignment",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+
+workflows:
+  build:
+    jobs:
+      - nodebuild:
+          context: slack
